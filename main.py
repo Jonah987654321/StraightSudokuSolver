@@ -1,26 +1,31 @@
 st = [
-    [6, None, None, 4, None, None, None, None, None],
-    [None, None, None, None, None, None, 6, None, 9],
-    [None, None, None, None, 5, None, 1, None, None],
-    [1, None, None, None, None, 8, None, None, None],
-    [None, None, None, None, 3, None, None, None, None],
     [None, None, None, None, None, None, None, None, None],
-    [None, None, 2, None, 7, None, None, None, None],
-    [None, None, None, None, None, None, 4, None, None],
-    [None, 6, None, None, None, None, None, None, None]
+    [None, None, None, None, None, None, 1, None, None],
+    [6, None, 8, None, 5, None, None, 4, None],
+    [None, 5, None, 9, None, None, None, None, 3],
+    [None, None, None, None, None, 2, 5, None, None],
+    [None, 4, 1, None, None, None, None, None, 6],
+    [None, None, None, None, None, None, None, None, None],
+    [None, 2, None, None, None, 8, None, None, None],
+    [None, None, None, None, None, None, None, 8, None],
 ]
 
 bf = [
-    [1, 0, 0, 0, 1, 1, 0, 0, 1],
-    [0, 0, 0, 0, 1, 0, 0, 0, 1],
-    [0, 0, 1, 1, 0, 0, 1, 0, 0],
-    [0, 0, 0, 0, 0, 1, 1, 0, 0],
-    [1, 0, 0, 0, 0, 0, 0, 0, 1],
-    [0, 0, 1, 1, 0, 0, 0, 0, 0],
-    [0, 0, 1, 0, 0, 1, 1, 0, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 0],
-    [1, 0, 0, 1, 1, 0, 0, 0, 1]
+    [0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    [0, 0, 0, 1, 0, 0, 1, 1, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+    [1, 1, 1, 0, 0, 1, 0, 0, 0],
+    [1, 0, 0, 0, 1, 0, 0, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [0, 0, 0, 1, 0, 0, 0, 0, 0],
 ]
+
+def printBoard(data):
+    for row in data:
+        print(" ".join([("0" if x is None else str(x)) for x in row])+"\n")
+    print("---------------------")
 
 def calcAllStraights(data):
     ret = {"rows": [], "columns": []}
@@ -67,9 +72,10 @@ def calcAllStraights(data):
 
 straights = calcAllStraights(bf)
 
-def replaceFirstEmpty(list, new):
+def replaceFirstEmpty(list, new, rowIndex):
+    global bf
     for x in range(0, len(list)):
-        if list[x] is None:
+        if list[x] is None and bf[rowIndex][x] == 0:
             list[x] = new
             break
     return list
@@ -102,6 +108,14 @@ def checkStraightsPossible(data):
         
     return True
 
+def rowHasEmpty(row, rowIndex):
+    global bf
+
+    for x in range(0, len(row)):
+        if row[x] is None and bf[rowIndex][x] == 0:
+            return True
+    return False
+
 possibles = []
 
 queue = [st]
@@ -110,22 +124,23 @@ while len(queue) > 0:
     task = queue[0]
     replaced = False
     for x in range(0, len(task)):
-        if len([y for y in task[x] if y is None]) > 0:
+        row = task[x]
+        if rowHasEmpty(row, x):
             queue.pop(0)
-            row = task[x]
             posRow = list(range(1, 10))
             for np in [y for y in row if y is not None]:
                 posRow.remove(np)
             for p in posRow:
                 newTask = task.copy()
-                newTask[x] = replaceFirstEmpty(row.copy(), p)
+                newTask[x] = replaceFirstEmpty(row.copy(), p, x)
                 if checkColumnsPossible(newTask) and checkStraightsPossible(newTask):
                     queue.insert(0, newTask)
             replaced = True
             break
     
     if not replaced:
-        print(task)
+        queue.pop(0)
         possibles.append(task)
 
-print(possibles)
+for p in possibles:
+    printBoard(p)
